@@ -4,6 +4,42 @@
 main:
 
 
+addi $k0, $0, 100 #init x position of the ball
+addi $k1, $0, 256 #init y position of the ball
+addi $17, $0, 1
+addi $18, $0, 2
+game_loop:
+clear_ball:
+	addi $a0 $0 0x10010000 # endereco
+	addi $a1 $0 0x000000 # RGB 0x ff ff ff
+	addi $a2 $0 2 # b
+	addi $a3 $0 2 # h
+	add $t0 $0 $k0 # x
+	add $t1 $0 $k1 # y
+	jal ret
+	
+update_ball_position:
+	add $k0, $k0, $17
+	add $k1, $k1, $18
+	ble $k1, $0, invert_y_direction 
+	bge $k1, 512, invert_y_direction
+	
+	ble $k0, $0, reset_ball 
+	bge $k0, 512, reset_ball
+	
+	
+continue_ball_trajectory:
+
+ball:
+	addi $a0 $0 0x10010000 # endereco
+	addi $a1 $0 0xffffff # RGB 0x ff ff ff
+	addi $a2 $0 2 # b
+	addi $a3 $0 2 # h
+	add $t0 $0 $k0 # x
+	add $t1 $0 $k1 # y
+	
+	jal ret
+
 player_1:
 	addi $a0 $0 0x10010000 # endereco
 	addi $a1 $0 0xcfcfcf # RGB 0x ff ff ff
@@ -55,6 +91,7 @@ change_white:
 	j continue_horizontal_line
 end_i: 
 	
+	j game_loop
 
 
 	addi $2, $0, 10
@@ -113,3 +150,18 @@ get_pixel_addr:
 	add $v0, $t0, $a0
 end_pixel_addr:
 	jr $ra
+	
+invert_y_direction:
+	mul $18, $18, -1
+	j continue_ball_trajectory
+	
+reset_ball:
+	addi $k0, $0, 126 #init x position of the ball
+	addi $k1, $0, 256 #init y position of the ball
+	addi $17, $0, 1
+	addi $18, $0, 2
+	li $17, 2  #Here you set $a1 to the max bound.
+    	li $v0, 42  #generates the random number.
+    	syscall
+    #add $a0, $a0, 100  #Here you add the lowest bound
+	j continue_ball_trajectory
