@@ -8,8 +8,8 @@ main:
 
 addi $k0, $0, 100 #init x position of the ball
 addi $k1, $0, 256 #init y position of the ball
-addi $17, $0, 1
-addi $18, $0, 2
+addi $s1, $0, 1
+addi $s2, $0, 4
 game_loop:
 clear_ball:
 	addi $a0 $0 0x10010000 # endereco
@@ -21,13 +21,13 @@ clear_ball:
 	jal ret
 	
 update_ball_position:
-	add $k0, $k0, $17
-	add $k1, $k1, $18
+	add $k0, $k0, $s1
+	add $k1, $k1, $s2
 	ble $k1, $0, invert_y_direction 
 	bge $k1, 512, invert_y_direction
 	
 	ble $k0, $0, reset_ball 
-	bge $k0, 512, reset_ball
+	bge $k0, 256, reset_ball
 	
 	
 continue_ball_trajectory:
@@ -67,29 +67,29 @@ draw_vertical_line:
 	addi $a1, $0, 0
 	addi $a2, $0, 256
 	addi $a3, $0, 256
-	addi $20, $0, 512
-	addi $9, $0, 0xFFFFFF
+	addi $s4, $0, 512
+	addi $t1, $0, 0xFFFFFF
 	
 for_i: 
-	beq $20, $0, end_i
+	beq $s4, $0, end_i
 	jal get_pixel_addr
-	sw $9, 0($v0)
+	sw $t1, 0($v0)
 	addi $a1, $a1, 2
-	addi $20, $20, -1
+	addi $s4, $s4, -1
 	addi $s0, $0, 8
-	div $20, $s0
-	mfhi $21
-	beq $21, $0, change_color
+	div $s4, $s0
+	mfhi $s5
+	beq $s5, $0, change_color
 
 continue_horizontal_line:
 	j for_i 
 
 change_color:
-	beq $9, $0, change_white
-	addi $9, $0, 0
+	beq $t1, $0, change_white
+	addi $t1, $0, 0
 	j continue_horizontal_line
 change_white:
-	addi $9, $0, 0xffffff
+	addi $t1, $0, 0xffffff
 	j continue_horizontal_line
 end_i: 
 	
@@ -154,16 +154,19 @@ end_pixel_addr:
 	jr $ra
 	
 invert_y_direction:
-	mul $18, $18, -1
+	mul $s2, $s2, -1
 	j continue_ball_trajectory
 	
 reset_ball:
 	addi $k0, $0, 126 #init x position of the ball
 	addi $k1, $0, 256 #init y position of the ball
-	addi $17, $0, 1
-	addi $18, $0, 2
-	li $17, 2  #Here you set $a1 to the max bound.
-    	li $v0, 42  #generates the random number.
-    	syscall
-    #add $a0, $a0, 100  #Here you add the lowest bound
+rnd_direction:
+	li $v0, 42            # system call to generate random int
+	la $a1, 4       # where you set the upper bound
+	syscall  
+	mul $a0, $a0, 2
+	add $s2, $a0, $0
+	addi $s2, $s2, -4
+	beq $s2, $0, rnd_direction
+	mul $s1, $s1, -1 #reset ball direction on reset
 	j continue_ball_trajectory
