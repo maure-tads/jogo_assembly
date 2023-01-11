@@ -10,6 +10,8 @@ addi $k0, $0, 100 #init x position of the ball
 addi $k1, $0, 256 #init y position of the ball
 addi $s1, $0, 1
 addi $s2, $0, 4
+addi $t8, $0, 248
+addi $t9, $0, 248
 game_loop:
 clear_ball:
 	addi $a0 $0 0x10010000 # endereco
@@ -20,6 +22,14 @@ clear_ball:
 	add $t1 $0 $k1 # y
 	jal ret
 	
+	addi $a0 $0 0x10010000 # endereco
+	addi $a1 $0 0x000000 # RGB 0x ff ff ff
+	addi $a2 $0 2 # b
+	addi $a3 $0 15 # h
+	addi $t0 $0 497 # x
+	add $t1 $0 $t9 # y
+	jal ret
+	
 update_ball_position:
 	add $k0, $k0, $s1
 	add $k1, $k1, $s2
@@ -28,6 +38,30 @@ update_ball_position:
 	
 	ble $k0, $0, reset_ball 
 	bge $k0, 256, reset_ball
+	
+update_player_2_position:
+	
+	addi $at, $t9, 7
+	bge $at, $k1, sobe
+desce:
+	addi $t9, $t9, 4
+	j continue_player_2_position
+sobe:
+	addi $t9, $t9, -4	
+	
+	
+continue_player_2_position:
+
+	addi $a3, $t9, 15
+	add $a0, $k0, $s1
+	add $a1, $k1, $s2
+	ble $a0, 239, end_player_2_collision_routine
+	bge $a1, $a3, end_player_2_collision_routine
+	ble $a1, $t9, end_player_2_collision_routine
+	
+	mul $s1, $s1, -1
+end_player_2_collision_routine:
+	
 	
 	
 continue_ball_trajectory:
@@ -48,7 +82,7 @@ player_1:
 	addi $a2 $0 2 # b
 	addi $a3 $0 15 # h
 	addi $t0 $0 15 # x
-	addi $t1 $0 248 # y
+	add $t1 $0 $t8 # y
 	
 	jal ret
 
@@ -58,7 +92,7 @@ player_2:
 	addi $a2 $0 2 # b
 	addi $a3 $0 15 # h
 	addi $t0 $0 497 # x
-	addi $t1 $0 248 # y
+	add $t1 $0 $t9 # y
 	
 	jal ret
 
@@ -92,9 +126,9 @@ change_white:
 	addi $t1, $0, 0xffffff
 	j continue_horizontal_line
 end_i: 
-	
+	jal timer
 	j game_loop
-
+	
 
 	addi $2, $0, 10
 	syscall
@@ -160,13 +194,23 @@ invert_y_direction:
 reset_ball:
 	addi $k0, $0, 126 #init x position of the ball
 	addi $k1, $0, 256 #init y position of the ball
-rnd_direction:
+rnd_y_direction:
 	li $v0, 42            # system call to generate random int
 	la $a1, 4       # where you set the upper bound
 	syscall  
 	mul $a0, $a0, 2
 	add $s2, $a0, $0
 	addi $s2, $s2, -4
-	beq $s2, $0, rnd_direction
+	beq $s2, $0, rnd_y_direction
 	mul $s1, $s1, -1 #reset ball direction on reset
 	j continue_ball_trajectory
+
+
+timer:  addi $s6, $0, 100
+fortimer: beq $s6, $0, fimtimer
+          nop
+          nop
+          nop
+          addi $s6, $s6, -1
+          j fortimer      
+fimtimer: jr $31
