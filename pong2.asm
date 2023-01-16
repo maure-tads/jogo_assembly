@@ -13,8 +13,23 @@ addi $s2, $0, 4
 addi $t8, $0, 248
 addi $t9, $0, 248
 game_loop:
+	lui $t0, 0xffff
+	lw $t4, 0($8)
+	beq $t4, $0, naodig
+	lw $t6, 4($8)
+	addi $t5, $0, 'w'
+    	bne $t5, $t6, down
+	addi $t5, $0, 's'
+    	bne $t5, $t6, up
+    	j naodig
+up:
+	addi $t8, $t8, -6
+	j naodig	
+down:
+	addi $t8, $t8, 6
+	
+naodig:
 clear_ball:
-	addi $a0 $0 0x10010000 # endereco
 	addi $a1 $0 0x000000 # RGB 0x ff ff ff
 	addi $a2 $0 2 # b
 	addi $a3 $0 2 # h
@@ -22,9 +37,6 @@ clear_ball:
 	add $t1 $0 $k1 # y
 	jal ret
 	
-	addi $a0 $0 0x10010000 # endereco
-	addi $a1 $0 0x000000 # RGB 0x ff ff ff
-	addi $a2 $0 2 # b
 	addi $a3 $0 15 # h
 	addi $t0 $0 497 # x
 	add $t1 $0 $t9 # y
@@ -40,7 +52,7 @@ update_ball_position:
 	bge $k0, 256, reset_ball
 	
 update_player_2_position:
-	
+
 	addi $at, $t9, 7
 	bge $at, $k1, sobe
 desce:
@@ -67,7 +79,6 @@ end_player_2_collision_routine:
 continue_ball_trajectory:
 
 ball:
-	addi $a0 $0 0x10010000 # endereco
 	addi $a1 $0 0xffffff # RGB 0x ff ff ff
 	addi $a2 $0 2 # b
 	addi $a3 $0 2 # h
@@ -77,9 +88,7 @@ ball:
 	jal ret
 
 player_1:
-	addi $a0 $0 0x10010000 # endereco
 	addi $a1 $0 0xcfcfcf # RGB 0x ff ff ff
-	addi $a2 $0 2 # b
 	addi $a3 $0 15 # h
 	addi $t0 $0 15 # x
 	add $t1 $0 $t8 # y
@@ -87,7 +96,6 @@ player_1:
 	jal ret
 
 player_2:
-	addi $a0 $0 0x10010000 # endereco
 	addi $a1 $0 0xcfcfcf # RGB 0x ff ff ff
 	addi $a2 $0 2 # b
 	addi $a3 $0 15 # h
@@ -126,7 +134,7 @@ change_white:
 	addi $t1, $0, 0xffffff
 	j continue_horizontal_line
 end_i: 
-	jal timer
+	#jal timer
 	j game_loop
 	
 
@@ -140,6 +148,7 @@ end_i:
 #t3 width
 
 ret:	
+	lui $a0, 0x1001
 	sll $t0 $t0 2
 	add $t0 $t0 $a0 # inicio + x
 	sll $t1 $t1 9
