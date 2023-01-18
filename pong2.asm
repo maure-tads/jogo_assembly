@@ -13,6 +13,29 @@ addi $s2, $0, 4
 addi $t8, $0, 248
 addi $t9, $0, 248
 game_loop:
+
+clear_ball:
+	addi $a1 $0 0x000000 # RGB 0x ff ff ff
+	addi $a2 $0 2 # b
+	addi $a3 $0 2 # h
+	add $t0 $0 $k0 # x
+	add $t1 $0 $k1 # y
+	jal ret
+
+clear_player_2_last_pos:
+	addi $a3 $0 15 # h
+	addi $t0 $0 497 # x
+	add $t1 $0 $t9 # y
+	jal ret
+	
+
+clear_player_1_last_pos:		
+	addi $a3 $0 15 # h
+	addi $t0 $0 15 # x
+	add $t1 $0 $t8 # y
+	jal ret
+
+player_mov:
 	lui $t0, 0xffff
 	lw $t4, 0($8)
 	beq $t4, $0, naodig
@@ -23,24 +46,12 @@ game_loop:
     	bne $t5, $t6, up
     	j naodig
 up:
-	addi $t8, $t8, -6
+	addi $t8, $t8, -12
 	j naodig	
 down:
-	addi $t8, $t8, 6
+	addi $t8, $t8, 12
 	
 naodig:
-clear_ball:
-	addi $a1 $0 0x000000 # RGB 0x ff ff ff
-	addi $a2 $0 2 # b
-	addi $a3 $0 2 # h
-	add $t0 $0 $k0 # x
-	add $t1 $0 $k1 # y
-	jal ret
-	
-	addi $a3 $0 15 # h
-	addi $t0 $0 497 # x
-	add $t1 $0 $t9 # y
-	jal ret
 	
 update_ball_position:
 	add $k0, $k0, $s1
@@ -134,7 +145,7 @@ change_white:
 	addi $t1, $0, 0xffffff
 	j continue_horizontal_line
 end_i: 
-	#jal timer
+	jal timer
 	j game_loop
 	
 
@@ -215,7 +226,7 @@ rnd_y_direction:
 	j continue_ball_trajectory
 
 
-timer:  addi $s6, $0, 100
+timer:  addi $s6, $0, 2000
 fortimer: beq $s6, $0, fimtimer
           nop
           nop
